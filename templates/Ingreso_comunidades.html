@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Comunidad</title>
+</head>
+<body>
+    <h1>Agregar Comunidad</h1>
+    <form id="comunidadForm">
+        <label for="nombre_comunidad">Nombre de la Comunidad:</label><br>
+        <input type="text" id="nombre_comunidad" name="nombre_comunidad"><br>
+        <label for="descripcion">Descripción:</label><br>
+        <textarea id="descripcion" name="descripcion"></textarea><br><br>
+        <button type="submit">Agregar Comunidad</button>
+    </form>
+    <h1 class="mt-5">Eliminar Comunidad</h1>
+        <form id="eliminarForm">
+            <div class="mb-3">
+                <label for="nombre_comunidad_eliminar" class="form-label">Nombre de la Comunidad:</label>
+                <input type="text" class="form-control" id="nombre_comunidad_eliminar" name="nombre_comunidad">
+            </div>
+            <button type="submit" class="btn btn-danger">Eliminar Comunidad</button>
+        </form>
+        </div>
+        
+        <h1>Lista de Comunidades</h1>
+        <ul id="listaComunidades"></ul>
+
+    <script>
+        document.getElementById("comunidadForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Evita que se envíe el formulario de manera tradicional
+            
+            var formData = new FormData(this); // Obtiene los datos del formulario
+    
+            // Realiza una solicitud PUT al servidor Flask
+            fetch("/agregar/comunidad", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json" // Cambia el tipo de contenido a application/json
+            },
+            body: JSON.stringify(Object.fromEntries(formData)) // Convertir los datos del formulario a un objeto y luego a JSON
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensaje); // Muestra el mensaje de respuesta del servidor
+                // Puedes redirigir o realizar otras acciones aquí según la respuesta del servidor
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Ocurrió un error al agregar la comunidad.");
+            });
+        });
+
+
+        document.getElementById("eliminarForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Evita que se envíe el formulario de manera tradicional
+            
+            var nombre_comunidad = document.getElementById("nombre_comunidad_eliminar").value;
+    
+            // Realiza una solicitud DELETE al servidor Flask
+            fetch("/eliminar/comunidad/" + encodeURIComponent(nombre_comunidad), {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json" // Cambia el tipo de contenido a application/json
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensaje); // Muestra el mensaje de respuesta del servidor
+                // Puedes redirigir o realizar otras acciones aquí según la respuesta del servidor
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Ocurrió un error al eliminar la comunidad.");
+            });
+        });
+    
+        fetch('/api/comunidades')
+            .then(response => response.json())
+            .then(data => {
+                // Obtener la lista de comunidades del objeto JSON recibido
+                const comunidades = data.comunidades;
+
+                // Seleccionar el elemento <ul> donde se mostrarán las comunidades
+                const listaComunidades = document.getElementById('listaComunidades');
+
+                // Iterar sobre cada comunidad y crear un <li> para mostrarla en la lista
+                comunidades.forEach(comunidad => {
+                    const li = document.createElement('li');
+                    li.textContent = `Nombre: ${comunidad.nombre_comunidad},      -       Descripción: ${comunidad.descripcion}`;
+                    listaComunidades.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al obtener la lista de comunidades.');
+            });
+    </script>
+    
+</body>
+</html>
