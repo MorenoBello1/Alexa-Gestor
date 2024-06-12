@@ -13,9 +13,18 @@ def home():
     return render_template('docentes.html')
 
 # Ruta para manejar solicitudes GET a /api/data
-@docentes_ruta.route('/api/data', methods=['GET'])
-def get_data():
-    return jsonify({"mensaje": "Solicitud GET recibida"})
+@docentes_ruta.route('/obtener_docentes', methods=['GET'])
+def get_docentes():
+    client = connect_to_mongodb()
+    try:
+        db = client.AlexaGestor
+        collection = db.docentes
+        docentes = list(collection.find({}, {"_id": 1, "nombre_docente": 1, "apellido_docente": 1}))
+        return jsonify(docentes), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        client.close()
 
 # Ruta para manejar solicitudes PUT a /api/data
 @docentes_ruta.route('/agregar/docente', methods=['PUT'])

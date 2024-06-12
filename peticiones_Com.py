@@ -19,39 +19,82 @@ def get_data():
 def add_comunidad():
     data = request.get_json()
     print("Datos recibidos:", data)
-    nombre_comunidad = data.get("nombre_comunidad")
-    descripcion = data.get("descripcion")
     
-    if not nombre_comunidad or not descripcion:
+    # Extraer los campos del JSON recibido
+    nombre_comunidad = data.get("nombre_comunidad")
+    periodo_comunidad = data.get("periodo_comunidad")
+    ubicacion_comunidad = data.get("ubicacion_comunidad")
+    observaciones = data.get("observaciones")
+    carrera_id = data.get("carrera_id")
+    docente_id = data.get("docente_id")
+    campos_faltantes = []
+    if not nombre_comunidad:
+        campos_faltantes.append("nombre_comunidad")
+    if not periodo_comunidad:
+        campos_faltantes.append("periodo_comunidad")
+    if not ubicacion_comunidad:
+        campos_faltantes.append("ubicacion_comunidad")
+    if not observaciones:
+        campos_faltantes.append("observaciones")
+    if not carrera_id:
+        campos_faltantes.append("id_carrera")
+    if not docente_id:
+        campos_faltantes.append("id_docente")
+    
+    if campos_faltantes:
+        print("Error: Faltan datos en la solicitud. Campos faltantes:", campos_faltantes)
+        return jsonify({"error": "Faltan datos", "campos_faltantes": campos_faltantes}), 400
+    # Validar que todos los campos requeridos estén presentes
+    if not nombre_comunidad or not periodo_comunidad or not ubicacion_comunidad or not carrera_id or not docente_id:
         print("Error: Faltan datos en la solicitud")
         return jsonify({"error": "Faltan datos"}), 400
 
+    # Conectar a MongoDB
     client = connect_to_mongodb()
 
     try:
         if client:
             print("Conexión exitosa a MongoDB")
-            db = client.comunidades
-            collection = db.activa
+            db = client.AlexaGestor
+            collection_comunidades = db.comunidades
+            collection_docentes = db.docentes
+            collection_carreras = db.carreras
             
-            # Generar un ID único
+            # Verificar existencia de id_docente en la colección docentes
+            docente = collection_docentes.find_one({"_id": docente_id})
+            if not docente:
+                print("Error: id_docente no existe")
+                return jsonify({"error": "id_docente no existe"}), 400
+            
+            # Verificar existencia de id_carrera en la colección carreras
+            carrera = collection_carreras.find_one({"_id": carrera_id})
+            if not carrera:
+                print("Error: id_carrera no existe")
+                return jsonify({"error": "id_carrera no existe"}), 400
+            
+            # Generar un ID único para la comunidad
             comunidad_id = str(uuid.uuid4())
 
+            # Crear el documento para insertar
             comunidad = {
                 "_id": comunidad_id,
                 "nombre_comunidad": nombre_comunidad,
-                "descripcion": descripcion
-            }
-            result = collection.insert_one(comunidad)
-            print(f"Comunidad {nombre_comunidad} añadida con ID: {comunidad_id}")
-            client.close()
-            return jsonify({"mensaje": f"Comunidad {nombre_comunidad} añadida con éxito", "id": comunidad_id}), 200
-        else:
-            print("Error: No se pudo conectar a MongoDB Atlas")
-            return jsonify({"error": "No se pudo conectar a MongoDB Atlas"}), 500
+                "periodo_comunidad": periodo_comunidad,
+                "ubicacion_comunidad": ubicacion_comunidad,
+                "observaciones": observaciones,
+                "carrera_id": carrera_id,
+                "docente_id": docente_id
+             }
+            
+            # Insertar el documento en la colección
+            result = collection_comunidades.insert_one(comunidad)
+            print("Comunidad agregada con ID:", comunidad_id)
+            return jsonify({"mensaje": "Comunidad agregada exitosamente", "comunidad_id": comunidad_id}), 201
     except Exception as e:
-        print("Error:", e)
-        return jsonify({"error": str(e)}), 500
+        print("Error al conectar o insertar en MongoDB:", str(e))
+        return jsonify({"error": "Error al conectar o insertar en MongoDB"}), 500
+    finally:
+        client.close()
     
 @comunidades_ruta.route('/eliminar/comunidad/<nombre_comunidad>', methods=['DELETE'])
 def delete_comunidad(nombre_comunidad):
@@ -60,8 +103,8 @@ def delete_comunidad(nombre_comunidad):
     try:
         if client:
             print("Conexión exitosa a MongoDB")
-            db = client.comunidades
-            collection = db.activa
+            db = client.AlexaGestor
+            collection = db.comunidades
             
             result = collection.delete_one({"nombre_comunidad": nombre_comunidad})
             
@@ -82,25 +125,30 @@ def delete_comunidad(nombre_comunidad):
 
 @comunidades_ruta.route('/api/comunidades', methods=['GET'])
 def obtener_comunidades():
+    client = connect_to_mongodb()
     try:
-        client = connect_to_mongodb()
-        db = client.comunidades
-        collection = db.activa
+        db = client.AlexaGestor
+        collection_comunidades = db.comunidades
+        collection_docentes = db.docentes
+        collection_carreras = db.carreras
 
-        # Excluir el campo "_id" de los resultados
-        resultados = collection.find({}, {"_id": 0})
-
-        # Convertir los resultados a una lista de diccionarios
-        comunidades = [comunidad for comunidad in resultados]
-
-        # Cerrar la conexión con MongoDB
-        client.close()
-
-        # Devolver los resultados como JSON
+        comunidades = list(collection_comunidades.find({}))
+        
+        for comunidad in comunidades:
+            docente_id = comunidad.get("docente_id")
+            carrera_id = comunidad.get("carrera_id")
+            
+            docente = collection_docentes.find_one({"_id": docente_id}, {"_id": 0, "nombre_docente": 1, "apellido_docente": 1})
+            carrera = collection_carreras.find_one({"_id": carrera_id}, {"_id": 0, "nombre_carrera": 1})
+            
+            comunidad["nombre_docente"] = f"{docente['nombre_docente']} {docente['apellido_docente']}" if docente else "Desconocido"
+            comunidad["nombre_carrera"] = carrera["nombre_carrera"] if carrera else "Desconocido"
+        
         return jsonify({"comunidades": comunidades}), 200
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        client.close()
 
 # Manejo de errores 404 (No encontrado)
 @comunidades_ruta.errorhandler(404)

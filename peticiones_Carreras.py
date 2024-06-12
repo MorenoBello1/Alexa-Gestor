@@ -13,9 +13,18 @@ def home():
     return render_template('Carreras.html')
 
 # Ruta para manejar solicitudes GET a /api/data
-@carreras_ruta.route('/api/data', methods=['GET'])
-def get_data():
-    return jsonify({"mensaje": "Solicitud GET recibida"})
+@carreras_ruta.route('/obtener_carreras', methods=['GET'])
+def get_carreras():
+    client = connect_to_mongodb()
+    try:
+        db = client.AlexaGestor
+        collection = db.carreras
+        carreras = list(collection.find({}, {"_id": 1, "nombre_carrera": 1}))
+        return jsonify(carreras), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        client.close()
 
 # Ruta para manejar solicitudes PUT a /api/data
 @carreras_ruta.route('/agregar/carrera', methods=['PUT'])

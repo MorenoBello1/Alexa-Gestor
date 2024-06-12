@@ -51,14 +51,34 @@
                             <label for="nombre_comunidad" class=" form-label fs-6" style="color: #3d1214" >Nombre de la Comunidad:</label><br>
                             <input type="text" id="nombre_comunidad" class="form-control" name="nombre_comunidad" aria-describedby="passwordHelpBlock">
                             <div id="nombre_comunidad" class="form-text">
-                                Aqui agrega los nombres de las comunidades, por ejemplo: Cisc 
+                                Aqui agrega los nombres de las comunidad, por ejemplo: Cisco 
                             </div>
                            
-                            <label for="descripcion" class=" form-label">Descripción:</label><br>
-                            <textarea id="descripcion" name="descripcion" class="form-control"></textarea>
-                            <div id="nombre_comunidad" class="form-text">
-                                Aqui agrega Descripción ...
+                            <label for="periodo_comunidad" class=" form-label fs-6" style="color: #3d1214" >periodo de la Comunidad:</label><br>
+                            <input type="text" id="periodo_comunidad" class="form-control" name="periodo_comunidad" aria-describedby="passwordHelpBlock">
+                            <div id="periodo_comunidad" class="form-text">
+                                Aqui agrega el periodo de las comunidad
                             </div>
+
+                            <label for="ubicacion_comunidad" class=" form-label fs-6" style="color: #3d1214" >Ubicacion de la Comunidad:</label><br>
+                            <input type="text" id="ubicacion_comunidad" class="form-control" name="ubicacion_comunidad" aria-describedby="passwordHelpBlock">
+                            <div id="ubicacion_comunidad" class="form-text">
+                                Aqui agrega la ubicación de la comunidad
+                            </div>
+
+                            <label for="observaciones" class=" form-label">Observaciones:</label><br>
+                            <textarea id="observaciones" name="observaciones" class="form-control"></textarea>
+                            <div id="observaciones" class="form-text">
+                                Aqui simplemente algun dato extra, no es obligatorio ...
+                            </div>
+
+                            <label for="carrera_id" class="form-label fs-6" style="color: #3d1214">Carrera:</label><br>
+                            <select id="carrera_id" class="form-control" name="carrera_id"></select>
+                            <div id="carrera_id" class="form-text">Selecciona la carrera</div>
+
+                            <label for="docente_id" class="form-label fs-6" style="color: #3d1214">Docente:</label><br>
+                            <select id="docente_id" class="form-control" name="docente_id"></select>
+                            <div id="docente_id" class="form-text">Selecciona el docente</div>
                             <div class="row  ">
                                 <div class="col-10">
     
@@ -91,8 +111,15 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Descripción</th>
+                            <th>Período</th>
+                            <th>Ubicacion</th>
+                            <th>Docente</th>
+                            <th>Carrera</th>
                             <th>Acciones</th>
+
+
+
+
                         </tr>
                     </thead>
                     <tbody>
@@ -146,7 +173,14 @@
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${comunidad.nombre_comunidad}</td>
-                            <td>${comunidad.descripcion}</td>
+                            <td>${comunidad.periodo_comunidad}</td>
+                            <td>${comunidad.ubicacion_comunidad}</td>
+                            <td>${comunidad.nombre_carrera}</td>
+                            <td>${comunidad.nombre_docente}</td>
+                             
+
+
+
                             <td>
                                 <button class="btn btn-danger btn-sm" onclick="eliminarComunidad('${comunidad.nombre_comunidad}')">Eliminar</button>
                             </td>
@@ -183,6 +217,36 @@
         document.addEventListener("DOMContentLoaded", function() {
             cargarComunidades();
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+    // Cargar carreras
+        fetch('/obtener_carreras')
+        .then(response => response.json())
+        .then(data => {
+            const carreraSelect = document.getElementById('carrera_id');
+            data.forEach(carrera => {
+                const option = document.createElement('option');
+                option.value = carrera._id;
+                option.text = carrera.nombre_carrera;
+                carreraSelect.add(option);
+            });
+        })
+        .catch(error => console.error('Error al cargar carreras:', error));
+
+    // Cargar docentes
+        fetch('/obtener_docentes')
+        .then(response => response.json())
+        .then(data => {
+            const docenteSelect = document.getElementById('docente_id');
+            data.forEach(docente => {
+                const option = document.createElement('option');
+                option.value = docente._id;
+                option.text = `${docente.nombre_docente} ${docente.apellido_docente}`;
+                docenteSelect.add(option);
+            });
+        })
+        .catch(error => console.error('Error al cargar docentes:', error));
+});
     </script>
     
 <!--
