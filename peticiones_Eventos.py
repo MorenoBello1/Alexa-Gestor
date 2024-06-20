@@ -22,10 +22,14 @@ def get_data():
 def add_evento():
     data = request.get_json()
     print("Datos recibidos:", data)
-    nombre_evento = data.get("nombre_evento")
-    descripcion = data.get("descripcion")
     
-    if not nombre_evento or not descripcion:
+    nombre_evento = data.get("nombre_evento")
+    fecha_evento_inicio = data.get("fecha_evento_inicio")
+    fecha_evento_fin = data.get("fecha_evento_fin")
+    ubicacion_evento = data.get("ubicacion_evento")
+    observaciones = data.get("observaciones")  # Cambiar a minúscula para que coincida
+
+    if not nombre_evento or not fecha_evento_inicio or not fecha_evento_fin or not ubicacion_evento or not observaciones:
         print("Error: Faltan datos en la solicitud")
         return jsonify({"error": "Faltan datos"}), 400
 
@@ -34,7 +38,7 @@ def add_evento():
     try:
         if client:
             print("Conexión exitosa a MongoDB")
-            db = client.comunidades
+            db = client.AlexaGestor
             collection = db.eventos
             
             # Generar un ID único
@@ -43,12 +47,15 @@ def add_evento():
             evento = {
                 "_id": evento_id,
                 "nombre_evento": nombre_evento,
-                "descripcion": descripcion
+                "ubicacion_evento": ubicacion_evento,
+                "fecha_evento_inicio": fecha_evento_inicio,
+                "fecha_evento_fin": fecha_evento_fin,
+                "observaciones": observaciones
             }
             result = collection.insert_one(evento)
             print(f"Evento {nombre_evento} añadida con ID: {evento_id}")
             client.close()
-            return jsonify({"mensaje": f"Evento {nombre_evento} añadida con éxito", "id": evento_id}), 200
+            return jsonify({"mensaje": f"Evento {nombre_evento} añadido con éxito", "id": evento_id}), 200
         else:
             print("Error: No se pudo conectar a MongoDB Atlas")
             return jsonify({"error": "No se pudo conectar a MongoDB Atlas"}), 500
@@ -63,7 +70,7 @@ def delete_evento(nombre_evento):
     try:
         if client:
             print("Conexión exitosa a MongoDB")
-            db = client.comunidades
+            db = client.AlexaGestor
             collection = db.eventos
             
             result = collection.delete_one({"nombre_evento": nombre_evento})
@@ -87,7 +94,7 @@ def delete_evento(nombre_evento):
 def obtener_eventos():
     try:
         client = connect_to_mongodb()
-        db = client.comunidades
+        db = client.AlexaGestor
         collection = db.eventos
 
         # Excluir el campo "_id" de los resultados
