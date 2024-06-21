@@ -1,10 +1,7 @@
 from flask import Blueprint,Flask, request, jsonify, render_template
 from conexion import *
 from bson import ObjectId
-
 import uuid
-
-
 
 formatos_ruta = Blueprint('formatos', __name__)
 
