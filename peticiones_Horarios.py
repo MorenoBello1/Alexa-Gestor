@@ -2,6 +2,7 @@ from flask import Blueprint, Flask, request, jsonify, render_template
 from conexion import *
 import uuid
 import os
+import base64
 
 horarios_ruta = Blueprint('horarios', __name__)
 
@@ -71,7 +72,6 @@ def delete_horario(_id):
     finally:
         client.close()
 
-import base64
 
 @horarios_ruta.route('/api/horarios', methods=['GET'])
 def obtener_horarios():
