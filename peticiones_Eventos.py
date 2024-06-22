@@ -63,32 +63,21 @@ def add_evento():
         print("Error:", e)
         return jsonify({"error": str(e)}), 500
     
-@eventos_ruta.route('/eliminar/evento/<nombre_evento>', methods=['DELETE'])
-def delete_evento(nombre_evento):
+@eventos_ruta.route('/eliminar/evento/<_id>', methods=['DELETE'])
+def delete_carrera(_id):
     client = connect_to_mongodb()
-
     try:
-        if client:
-            print("Conexión exitosa a MongoDB")
-            db = client.AlexaGestor
-            collection = db.eventos
-            
-            result = collection.delete_one({"nombre_evento": nombre_evento})
-            
-            if result.deleted_count == 1:
-                print(f"Evento con nombre: {nombre_evento} eliminada")
-                client.close()
-                return jsonify({"mensaje": f"Evento con nombre: {nombre_evento} eliminada con éxito"}), 200
-            else:
-                print(f"No se encontró el evento con nombre: {nombre_evento}")
-                client.close()
-                return jsonify({"error": f"No se encontró la comunidad con nombre: {nombre_evento}"}), 404
+        db = client.AlexaGestor
+        collection = db.eventos
+        result = collection.delete_one({"_id": _id})
+        if result.deleted_count == 1:
+            return jsonify({"mensaje": f"Evento con id: {_id} eliminado con éxito"}), 200
         else:
-            print("Error: No se pudo conectar a MongoDB Atlas")
-            return jsonify({"error": "No se pudo conectar a MongoDB Atlas"}), 500
+            return jsonify({"error": f"No se encontró el evento con id: {_id}"}), 404
     except Exception as e:
-        print("Error:", e)
         return jsonify({"error": str(e)}), 500
+    finally:
+        client.close()
 
 @eventos_ruta.route('/api/eventos', methods=['GET'])
 def obtener_eventos():
@@ -98,7 +87,7 @@ def obtener_eventos():
         collection = db.eventos
 
         # Excluir el campo "_id" de los resultados
-        resultados = collection.find({}, {"_id": 0})
+        resultados = collection.find({})
 
         # Convertir los resultados a una lista de diccionarios
         eventos = [evento for evento in resultados]

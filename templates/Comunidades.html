@@ -14,7 +14,7 @@
 
         <div class="d-flex justify-content-around" style="background-color:#EC3237">
           <!--NAVEGACION -->
-          <div class="p-2"> <a href="/home/" style="text-decoration: none; color: #ffffff;">Página Principal</a></div>
+          <div class="p-2"> <a href="/" style="text-decoration: none; color: #ffffff;">Página Principal</a></div>
           <div class="p-2"> <a href="/horarios/" style="text-decoration: none; color: #ffffff;">Horarios</a></div>
           <div class="p-2"> <a href="/docentes/" style="text-decoration: none; color: #ffffff;">Docentes</a></div>
           <div class="p-2"> <a href="/carreras/" style="text-decoration: none; color: #ffffff;">Carreras</a></div>
@@ -110,6 +110,7 @@
                 <table class="table table-striped" id="tablaComunidades">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Nombre</th>
                             <th>Período</th>
                             <th>Ubicacion</th>
@@ -167,11 +168,12 @@
                     // Seleccionar el cuerpo de la tabla donde se mostrarán las comunidades
                     const tablaComunidades = document.querySelector('#tablaComunidades tbody');
                     tablaComunidades.innerHTML = ''; // Limpiar la tabla existente
-
+                    let contador=1
                     // Iterar sobre cada comunidad y crear una fila para mostrarla en la tabla
                     comunidades.forEach(comunidad => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
+                            <td>${contador}</td>
                             <td>${comunidad.nombre_comunidad}</td>
                             <td>${comunidad.periodo_comunidad}</td>
                             <td>${comunidad.ubicacion_comunidad}</td>
@@ -182,9 +184,10 @@
 
 
                             <td>
-                                <button class="btn btn-danger btn-sm" onclick="eliminarComunidad('${comunidad.nombre_comunidad}')">Eliminar</button>
+                                <button class="btn btn-danger btn-sm" onclick="eliminarComunidad('${comunidad._id}')">Eliminar</button>
                             </td>
                         `;
+                        contador++;
                         tablaComunidades.appendChild(tr);
                     });
                 })
@@ -194,18 +197,18 @@
                 });
         }
 
-        function eliminarComunidad(nombre_comunidad) {
-            // Realiza una solicitud DELETE al servidor Flask
-            fetch("/eliminar/comunidad/" + encodeURIComponent(nombre_comunidad), {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json" // Cambia el tipo de contenido a application/json
-                }
+        function eliminarComunidad(id) {
+            fetch("/eliminar/comunidad/" + encodeURIComponent(id), {
+                method: "DELETE"
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.mensaje); // Muestra el mensaje de respuesta del servidor
-                cargarComunidades(); // Recargar la lista de comunidades
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.mensaje);
+                    cargarComunidades(); // Recargar la lista 
+                }
             })
             .catch(error => {
                 console.error('Error:', error);

@@ -65,32 +65,21 @@ def add_docente():
         print("Error:", e)
         return jsonify({"error": str(e)}), 500
     
-@docentes_ruta.route('/eliminar/docente/<nombre_docente>', methods=['DELETE'])
-def delete_docente(nombre_docente):
+@docentes_ruta.route('/eliminar/docente/<_id>', methods=['DELETE'])
+def delete_docente(_id):
     client = connect_to_mongodb()
-
     try:
-        if client:
-            print("Conexión exitosa a MongoDB")
-            db = client.AlexaGestor
-            collection = db.docentes
-            
-            result = collection.delete_one({"nombre_docente": nombre_docente})
-            
-            if result.deleted_count == 1:
-                print(f"Docente con nombre: {nombre_docente} eliminada")
-                client.close()
-                return jsonify({"mensaje": f"docente con nombre: {nombre_docente} eliminada con éxito"}), 200
-            else:
-                print(f"No se encontró el docente con nombre: {nombre_docente}")
-                client.close()
-                return jsonify({"error": f"No se encontró el docente con nombre: {nombre_docente}"}), 404
+        db = client.AlexaGestor
+        collection = db.docentes
+        result = collection.delete_one({"_id": _id})
+        if result.deleted_count == 1:
+            return jsonify({"mensaje": f"Docente con id: {_id} eliminado con éxito"}), 200
         else:
-            print("Error: No se pudo conectar a MongoDB Atlas")
-            return jsonify({"error": "No se pudo conectar a MongoDB Atlas"}), 500
+            return jsonify({"error": f"No se encontró el docente con id: {_id}"}), 404
     except Exception as e:
-        print("Error:", e)
         return jsonify({"error": str(e)}), 500
+    finally:
+        client.close()
 
 @docentes_ruta.route('/api/docentes', methods=['GET'])
 def obtener_docentes():
@@ -100,7 +89,7 @@ def obtener_docentes():
         collection = db.docentes
 
         # Excluir el campo "_id" de los resultados
-        resultados = collection.find({}, {"_id": 0})
+        resultados = collection.find({})
 
         # Convertir los resultados a una lista de diccionarios
         docentes = [docente for docente in resultados]

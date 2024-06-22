@@ -12,7 +12,7 @@
 
     <div class="d-flex justify-content-around" style="background-color:#EC3237">
       <!--NAVEGACION -->
-      <div class="p-2"> <a href="/home/" style="text-decoration: none; color: #ffffff;">Pagina Principal</a></div>
+      <div class="p-2"> <a href="/" style="text-decoration: none; color: #ffffff;">Pagina Principal</a></div>
       <div class="p-2"> <a href="/comunidades/" style="text-decoration: none; color: #ffffff;">Comunidades</a></div>
       <div class="p-2"> <a href="/horarios/" style="text-decoration: none; color: #ffffff;">Horarios</a></div>
       <div class="p-2"> <a href="/docentes/" style="text-decoration: none; color: #ffffff;">Docentes</a></div>
@@ -87,6 +87,7 @@
            <table class="table table-striped" id="tablaCarreras">
                <thead>
                    <tr>
+                    <th>#</th>
                        <th>Nombre</th>
                        <th>Descripción</th>
                        <th>Acciones</th>
@@ -137,17 +138,21 @@
                   // Seleccionar el cuerpo de la tabla donde se mostrarán las comunidades
                   const tablaCarreras = document.querySelector('#tablaCarreras tbody');
                   tablaCarreras.innerHTML = ''; // Limpiar la tabla existente
-
+                  let contador=1
                   // Iterar sobre cada comunidad y crear una fila para mostrarla en la tabla
                   carreras.forEach(carrera=> {
                       const tr = document.createElement('tr');
                       tr.innerHTML = `
+                          <td>${contador}</td>
                           <td>${carrera.nombre_carrera}</td>
                           <td>${carrera.descripcion}</td>
+
                           <td>
-                              <button class="btn btn-danger btn-sm" onclick="eliminarCarrera('${carrera.nombre_carrera}')">Eliminar</button>
+
+                              <button class="btn btn-danger btn-sm" onclick="eliminarCarrera('${carrera._id}')">Eliminar</button>
                           </td>
                       `;
+                      contador++;
                       tablaCarreras.appendChild(tr);
                   });
               })
@@ -157,24 +162,24 @@
               });
       }
 
-      function eliminarCarrera(nombre_carrera) {
-          // Realiza una solicitud DELETE al servidor Flask
-          fetch("/eliminar/carrera/" + encodeURIComponent(nombre_carrera), {
-              method: "DELETE",
-              headers: {
-                  "Content-Type": "application/json" // Cambia el tipo de contenido a application/json
-              }
-          })
-          .then(response => response.json())
-          .then(data => {
-              alert(data.mensaje); // Muestra el mensaje de respuesta del servidor
-              cargarCarreras(); // Recargar la lista de comunidades
-          })
-          .catch(error => {
-              console.error('Error:', error);
-              alert("Ocurrió un error al eliminar el carrera.");
-          });
-      }
+      function eliminarCarrera(id) {
+        fetch("/eliminar/carrera/" + encodeURIComponent(id), {
+            method: "DELETE"
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert(data.mensaje);
+                cargarCarreras(); // Recargar la lista 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Ocurrió un error al eliminar la carrera.");
+        });
+    }
 
       // Cargar la lista de comunidades al cargar la página
       document.addEventListener("DOMContentLoaded", function() {

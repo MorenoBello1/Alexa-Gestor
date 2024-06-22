@@ -65,32 +65,21 @@ def add_carrera():
         print("Error:", e)
         return jsonify({"error": str(e)}), 500
     
-@carreras_ruta.route('/eliminar/carrera/<nombre_carrera>', methods=['DELETE'])
-def delete_carrera(nombre_carrera):
+@carreras_ruta.route('/eliminar/carrera/<_id>', methods=['DELETE'])
+def delete_carrera(_id):
     client = connect_to_mongodb()
-
     try:
-        if client:
-            print("Conexión exitosa a MongoDB")
-            db = client.AlexaGestor
-            collection = db.carreras
-            
-            result = collection.delete_one({"nombre_carrera": nombre_carrera})
-            
-            if result.deleted_count == 1:
-                print(f"Carrera con nombre: {nombre_carrera} eliminada")
-                client.close()
-                return jsonify({"mensaje": f"Carrera con nombre: {nombre_carrera} eliminada con éxito"}), 200
-            else:
-                print(f"No se encontró la carrera con nombre: {nombre_carrera}")
-                client.close()
-                return jsonify({"error": f"No se encontró la carrera con nombre: {nombre_carrera}"}), 404
+        db = client.AlexaGestor
+        collection = db.carreras
+        result = collection.delete_one({"_id": _id})
+        if result.deleted_count == 1:
+            return jsonify({"mensaje": f"Carrera con id: {_id} eliminado con éxito"}), 200
         else:
-            print("Error: No se pudo conectar a MongoDB Atlas")
-            return jsonify({"error": "No se pudo conectar a MongoDB Atlas"}), 500
+            return jsonify({"error": f"No se encontró la carrera con id: {_id}"}), 404
     except Exception as e:
-        print("Error:", e)
         return jsonify({"error": str(e)}), 500
+    finally:
+        client.close()
 
 @carreras_ruta.route('/api/carreras', methods=['GET'])
 def obtener_carreras():
@@ -100,7 +89,7 @@ def obtener_carreras():
         collection = db.carreras
 
         # Excluir el campo "_id" de los resultados
-        resultados = collection.find({}, {"_id": 0})
+        resultados = collection.find({})
 
         # Convertir los resultados a una lista de diccionarios
         carreras = [carrera for carrera in resultados]

@@ -1,5 +1,5 @@
 from flask import Flask
-from peticiones_Com import comunidades_ruta
+from peticiones_Comunidades import comunidades_ruta
 from peticiones_home import home_ruta
 from peticiones_Horarios import horarios_ruta
 from peticiones_Eventos import eventos_ruta

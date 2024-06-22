@@ -12,7 +12,7 @@
 
     <div class="d-flex justify-content-around" style="background-color:#EC3237">
       <!--NAVEGACION -->
-      <div class="p-2"> <a href="/home/" style="text-decoration: none; color: #ffffff;">Pagina Principal</a></div>
+      <div class="p-2"> <a href="/" style="text-decoration: none; color: #ffffff;">Pagina Principal</a></div>
       <div class="p-2"> <a href="/comunidades/" style="text-decoration: none; color: #ffffff;">Comunidades</a></div>
       <div class="p-2"> <a href="/horarios/" style="text-decoration: none; color: #ffffff;">Horarios</a></div>
       <div class="p-2"> <a href="/carreras/" style="text-decoration: none; color: #ffffff;">Carreras</a></div>
@@ -87,6 +87,7 @@
            <table class="table table-striped" id="tablaDocentes">
                <thead>
                    <tr>
+                    <th>#</th>
                        <th>Nombre</th>
                        <th>Apellido</th>
                        <th>Acciones</th>
@@ -137,17 +138,19 @@
                   // Seleccionar el cuerpo de la tabla donde se mostrarán las comunidades
                   const tablaDocentes = document.querySelector('#tablaDocentes tbody');
                   tablaDocentes.innerHTML = ''; // Limpiar la tabla existente
-
+                  let contador=1
                   // Iterar sobre cada comunidad y crear una fila para mostrarla en la tabla
                   docentes.forEach(docente=> {
                       const tr = document.createElement('tr');
                       tr.innerHTML = `
+                           <td>${contador}</td>
                           <td>${docente.nombre_docente}</td>
                           <td>${docente.apellido_docente}</td>
                           <td>
-                              <button class="btn btn-danger btn-sm" onclick="eliminarDocente('${docente.nombre_docente}')">Eliminar</button>
+                              <button class="btn btn-danger btn-sm" onclick="eliminarDocente('${docente._id}')">Eliminar</button>
                           </td>
                       `;
+                      contador++;
                       tablaDocentes.appendChild(tr);
                   });
               })
@@ -157,24 +160,24 @@
               });
       }
 
-      function eliminarDocente(nombre_docente) {
-          // Realiza una solicitud DELETE al servidor Flask
-          fetch("/eliminar/docente/" + encodeURIComponent(nombre_docente), {
-              method: "DELETE",
-              headers: {
-                  "Content-Type": "application/json" // Cambia el tipo de contenido a application/json
-              }
-          })
-          .then(response => response.json())
-          .then(data => {
-              alert(data.mensaje); // Muestra el mensaje de respuesta del servidor
-              cargarDocentes(); // Recargar la lista de comunidades
-          })
-          .catch(error => {
-              console.error('Error:', error);
-              alert("Ocurrió un error al eliminar el docente.");
-          });
-      }
+      function eliminarDocente(id) {
+        fetch("/eliminar/docente/" + encodeURIComponent(id), {
+            method: "DELETE"
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert(data.mensaje);
+                cargarDocentes(); // Recargar la lista 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Ocurrió un error al eliminar la carrera.");
+        });
+    }
 
       // Cargar la lista de comunidades al cargar la página
       document.addEventListener("DOMContentLoaded", function() {

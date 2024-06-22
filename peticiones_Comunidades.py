@@ -8,7 +8,7 @@ comunidades_ruta = Blueprint('comunidades', __name__)
 # Ruta principal que renderiza un archivo HTML
 @comunidades_ruta.route('/comunidades/')
 def ingreso_comunidades():
-    return render_template('ingreso_comunidades.html')
+    return render_template('Comunidades.html')
 # Ruta para manejar solicitudes GET a /api/data
 @comunidades_ruta.route('/api/data', methods=['GET'])
 def get_data():
@@ -96,33 +96,21 @@ def add_comunidad():
     finally:
         client.close()
     
-@comunidades_ruta.route('/eliminar/comunidad/<nombre_comunidad>', methods=['DELETE'])
-def delete_comunidad(nombre_comunidad):
+@comunidades_ruta.route('/eliminar/comunidad/<_id>', methods=['DELETE'])
+def delete_comunidad(_id):
     client = connect_to_mongodb()
-
     try:
-        if client:
-            print("Conexión exitosa a MongoDB")
-            db = client.AlexaGestor
-            collection = db.comunidades
-            
-            result = collection.delete_one({"nombre_comunidad": nombre_comunidad})
-            
-            if result.deleted_count == 1:
-                print(f"Comunidad con nombre: {nombre_comunidad} eliminada")
-                client.close()
-                return jsonify({"mensaje": f"Comunidad con nombre: {nombre_comunidad} eliminada con éxito"}), 200
-            else:
-                print(f"No se encontró la comunidad con nombre: {nombre_comunidad}")
-                client.close()
-                return jsonify({"error": f"No se encontró la comunidad con nombre: {nombre_comunidad}"}), 404
+        db = client.AlexaGestor
+        collection = db.comunidades
+        result = collection.delete_one({"_id": _id})
+        if result.deleted_count == 1:
+            return jsonify({"mensaje": f"Comunidad con id: {_id} eliminado con éxito"}), 200
         else:
-            print("Error: No se pudo conectar a MongoDB Atlas")
-            return jsonify({"error": "No se pudo conectar a MongoDB Atlas"}), 500
+            return jsonify({"error": f"No se encontró la carrera con id: {_id}"}), 404
     except Exception as e:
-        print("Error:", e)
         return jsonify({"error": str(e)}), 500
-
+    finally:
+        client.close()
 @comunidades_ruta.route('/api/comunidades', methods=['GET'])
 def obtener_comunidades():
     client = connect_to_mongodb()

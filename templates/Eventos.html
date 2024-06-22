@@ -12,7 +12,7 @@
 
     <div class="d-flex justify-content-around" style="background-color:#EC3237">
       <!--NAVEGACION -->
-      <div class="p-2"> <a href="/home/" style="text-decoration: none; color: #ffffff;">Pagina Principal</a></div>
+      <div class="p-2"> <a href="/" style="text-decoration: none; color: #ffffff;">Pagina Principal</a></div>
       <div class="p-2"> <a href="/comunidades/" style="text-decoration: none; color: #ffffff;">Comunidades</a></div>
       <div class="p-2"> <a href="/horarios/" style="text-decoration: none; color: #ffffff;">Horarios</a></div>
       <div class="p-2"> <a href="/docentes/" style="text-decoration: none; color: #ffffff;">Docentes</a></div>
@@ -185,7 +185,7 @@
                           <td>${evento.fecha_evento_inicio}</td>
                           <td>${evento.fecha_evento_fin}</td>
                           <td>
-                              <button class="btn btn-danger btn-sm" onclick="eliminarEvento('${evento.nombre_evento}')">Eliminar</button>
+                              <button class="btn btn-danger btn-sm" onclick="eliminarEvento('${evento._id}')">Eliminar</button>
                           </td>
                       `;
                       contador++;
@@ -198,24 +198,24 @@
               });
       }
 
-      function eliminarEvento(nombre_evento) {
-          // Realiza una solicitud DELETE al servidor Flask
-          fetch("/eliminar/evento/" + encodeURIComponent(nombre_evento), {
-              method: "DELETE",
-              headers: {
-                  "Content-Type": "application/json" // Cambia el tipo de contenido a application/json
-              }
-          })
-          .then(response => response.json())
-          .then(data => {
-              alert(data.mensaje); // Muestra el mensaje de respuesta del servidor
-              cargarEventos(); // Recargar la lista de comunidades
-          })
-          .catch(error => {
-              console.error('Error:', error);
-              alert("Ocurrió un error al eliminar el evento.");
-          });
-      }
+        function eliminarEvento(id) {
+            fetch("/eliminar/evento/" + encodeURIComponent(id), {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.mensaje);
+                    cargarEventos(); // Recargar la lista 
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Ocurrió un error al eliminar el evento");
+            });
+        }
 
       // Cargar la lista de comunidades al cargar la página
       document.addEventListener("DOMContentLoaded", function() {
